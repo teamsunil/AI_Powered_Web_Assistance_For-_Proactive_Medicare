@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Proactive Medicare · AI Website Assistant (POC)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* =========================================================================
+   DESIGN TOKENS
+   Brand teal sampled directly from the Proactive Medicare logo (#77CDD0).
+   A deeper teal is used for text and buttons so contrast meets WCAG AA.
+   ========================================================================= */
+:root{
+  --brand:#77CDD0;          /* logo teal – accents, heartbeat line */
+  --brand-soft:#D9F1F2;
+  --brand-deep:#136B72;     /* buttons, links, user bubbles (AA on white) */
+  --brand-deeper:#0E545A;
+  --ink:#173236;
+  --muted:#4F6A6E;
+  --line:#D3E7E8;
+  --mist:#F1F9F9;
+  --paper:#FFFFFF;
+  --alert:#B3261E;
+  --alert-soft:#FDECEA;
+  --display:"Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Source Sans 3", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --shadow-panel:0 24px 60px -18px rgba(14,84,90,.35), 0 4px 14px rgba(14,84,90,.10);
+  --shadow-soft:0 2px 8px rgba(14,84,90,.08);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);color:var(--ink);background:var(--paper);font-size:17px;line-height:1.55;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+a{color:var(--brand-deep)}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px;border-radius:6px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+
+/* ---------- Demo website shell ---------- */
+.site-nav{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0}
+.site-nav img{height:54px;width:auto;display:block}
+.site-nav ul{display:flex;gap:26px;list-style:none;margin:0;padding:0;font-weight:600;font-size:16px}
+.site-nav ul a{color:var(--ink);text-decoration:none}
+.site-nav ul a:hover{color:var(--brand-deep)}
+.btn{font:inherit;font-weight:600;border:0;cursor:pointer;border-radius:999px;padding:11px 22px;display:inline-flex;align-items:center;gap:8px;text-decoration:none;transition:background .2s,transform .15s,box-shadow .2s}
+.btn-primary{background:var(--brand-deep);color:#fff}
+.btn-primary:hover{background:var(--brand-deeper)}
+.btn-ghost{background:transparent;color:var(--brand-deep);box-shadow:inset 0 0 0 2px var(--brand-deep)}
+.btn-ghost:hover{background:var(--mist)}
+.btn:active{transform:translateY(1px)}
+
+.poc-banner{background:var(--ink);color:#E6F4F4;font-size:14px;text-align:center;padding:8px 16px}
+.poc-banner strong{color:var(--brand)}
+
+.hero{position:relative;background:linear-gradient(180deg,var(--mist),#fff 85%);overflow:hidden}
+.hero-inner{padding:72px 0 120px;max-width:640px}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(36px,5vw,56px);line-height:1.05;letter-spacing:-.01em;margin:0 0 18px;color:var(--ink)}
+.hero p{font-size:19px;color:var(--muted);margin:0 0 28px;max-width:52ch}
+.hero .actions{display:flex;flex-wrap:wrap;gap:12px}
+.hero-pulse{position:absolute;left:0;right:0;bottom:28px;height:90px;pointer-events:none}
+.hero-pulse path{fill:none;stroke:var(--brand);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2600;stroke-dashoffset:2600;animation:draw 3.2s .3s ease-out forwards}
+@keyframes draw{to{stroke-dashoffset:0}}
+.facts{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:34px;font-size:15px;color:var(--muted)}
+.facts span{display:inline-flex;align-items:center;gap:8px}
+.facts svg{color:var(--brand-deep);flex:none}
+
+/* ---------- How it works ---------- */
+.contact-sec{padding:72px 0;border-top:1px solid var(--line);scroll-margin-top:20px}
+.contact-sec h2{font-family:var(--display);font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin:0 0 10px}
+.contact-sec .lede{color:var(--muted);margin:0 0 26px;max-width:60ch}
+.contact-box{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;border-radius:20px;transition:box-shadow .4s}
+.contact-box > div{border:1px solid var(--line);border-radius:16px;padding:18px 20px;background:#fff}
+.contact-box h3{font-family:var(--display);font-size:19px;margin:0 0 4px}
+.contact-box p{margin:0;color:var(--muted);font-size:16px}
+.contact-box a{font-weight:600}
+.contact-sec .actions{margin-top:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.contact-sec .note{font-size:14px;color:var(--muted)}
+.contact-sec.flash .contact-box{box-shadow:0 0 0 4px var(--brand),0 0 0 10px var(--brand-soft)}
+@media (max-width:860px){.contact-box{grid-template-columns:1fr}}
+.how{padding:84px 0 96px;border-top:1px solid var(--line)}
+.how-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:56px;align-items:start}
+.how h2{font-family:var(--display);font-size:clamp(28px,3.4vw,40px);line-height:1.1;margin:0 0 16px}
+.how p{color:var(--muted);max-width:60ch;margin:0 0 16px}
+.flow{list-style:none;margin:0;padding:0;position:relative}
+.flow li{position:relative;padding:0 0 26px 58px}
+.flow li:last-child{padding-bottom:0}
+.flow li::before{content:"";position:absolute;left:19px;top:40px;bottom:2px;width:2px;background:repeating-linear-gradient(to bottom,var(--brand) 0 6px,transparent 6px 11px)}
+.flow li:last-child::before{display:none}
+.flow .node{position:absolute;left:0;top:0;width:40px;height:40px;border-radius:12px;background:var(--brand-soft);color:var(--brand-deep);display:grid;place-items:center}
+.flow li.ai .node{background:var(--brand-deep);color:#fff}
+.flow h3{font-family:var(--display);font-size:20px;margin:6px 0 2px;line-height:1.2}
+.flow p{font-size:15.5px;margin:0}
+.try{margin-top:30px}
+.try h3{font-family:var(--display);font-size:20px;margin:0 0 10px}
+.try-list{display:flex;flex-wrap:wrap;gap:8px}
+.try-list button{font:inherit;font-size:15px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:999px;padding:7px 14px;cursor:pointer}
+.try-list button:hover{border-color:var(--brand-deep);color:var(--brand-deep)}
+.console{margin-top:30px;border:1px solid var(--line);border-radius:16px;background:var(--mist);padding:18px 20px}
+.console-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.console h3{font-family:var(--display);font-size:19px;margin:0}
+.console small{color:var(--muted);font-size:14px}
+.console ul{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px;max-height:260px;overflow:auto}
+.console li{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14.5px;line-height:1.4}
+.console li b{font-weight:600}
+.console .empty{color:var(--muted);font-size:14.5px;margin:6px 0 0}
+.link-btn{font:inherit;font-size:14px;background:none;border:0;color:var(--brand-deep);text-decoration:underline;cursor:pointer;padding:0}
+
+footer.site-foot{background:var(--ink);color:#C9DFE0;font-size:14.5px;padding:28px 0}
+footer.site-foot .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+
+/* =========================================================================
+   ASSISTANT WIDGET
+   ========================================================================= */
+.pm-launcher{position:fixed;right:24px;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:60;width:64px;height:64px;border-radius:50%;border:0;cursor:pointer;background:var(--brand-deep);color:#fff;display:grid;place-items:center;box-shadow:0 10px 26px -6px rgba(14,84,90,.55);transition:transform .25s cubic-bezier(.3,1.4,.5,1),background .2s}
+.pm-launcher:hover{transform:scale(1.06);background:var(--brand-deeper)}
+.pm-launcher::before,.pm-launcher::after{content:"";position:absolute;inset:0;border-radius:50%;border:2px solid var(--brand);opacity:0;animation:beat 2.6s ease-out infinite}
+.pm-launcher::after{animation-delay:.35s}
+@keyframes beat{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.55);opacity:0}100%{opacity:0}}
+.pm-launcher svg{width:38px;height:auto}
+.pm-launcher .ic-close{display:none;width:24px}
+.pm-open .pm-launcher .ic-mark{display:none}
+.pm-open .pm-launcher .ic-close{display:block}
+.pm-open .pm-launcher::before,.pm-open .pm-launcher::after{animation:none}
+
+.pm-nudge{position:fixed;right:98px;bottom:calc(36px + env(safe-area-inset-bottom,0px));z-index:59;background:#fff;color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow-soft);border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:15px;max-width:230px;opacity:0;transform:translateY(8px);transition:opacity .35s,transform .35s;pointer-events:none}
+.pm-nudge.show{opacity:1;transform:none;pointer-events:auto}
+.pm-nudge button{font:inherit;font-weight:600;color:var(--brand-deep);background:none;border:0;padding:0;cursor:pointer}
+
+.pm-panel{position:fixed;right:24px;bottom:calc(100px + env(safe-area-inset-bottom,0px));z-index:61;width:404px;height:min(660px,calc(100vh - 130px));height:min(660px,calc(100dvh - 130px));background:var(--paper);border-radius:22px;box-shadow:var(--shadow-panel);display:flex;flex-direction:column;overflow:hidden;transform-origin:bottom right;transform:translateY(16px) scale(.96);opacity:0;visibility:hidden;transition:opacity .28s ease,transform .32s cubic-bezier(.2,.9,.3,1.1),visibility 0s .32s}
+.pm-open .pm-panel{opacity:1;transform:none;visibility:visible;transition:opacity .28s ease,transform .32s cubic-bezier(.2,.9,.3,1.1),visibility 0s}
+
+.pm-head{background:var(--brand-deep);color:#fff;padding:16px 14px 16px 18px;display:flex;align-items:center;gap:12px;position:relative}
+.pm-head::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:10px;background:radial-gradient(circle at 50% 0,rgba(0,0,0,.08),transparent 70%)}
+.pm-avatar{width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,.12);display:grid;place-items:center;flex:none}
+.pm-avatar svg{width:34px}
+.pm-title{flex:1;min-width:0}
+.pm-sub{font-size:13px;color:#BFE6E8;line-height:1.3;margin-top:1px}
+.pm-title h2{font-family:var(--display);font-size:17.5px;line-height:1.15;margin:0;font-weight:600}
+.pm-status{display:flex;align-items:center;gap:6px;font-size:13.5px;color:#D7F0F1;margin-top:2px;white-space:nowrap;overflow:hidden}
+.pm-status i{flex:none}
+.pm-status i{width:8px;height:8px;border-radius:50%;background:#7EE2A8;box-shadow:0 0 0 3px rgba(126,226,168,.25)}
+.pm-icon-btn{width:38px;height:38px;border-radius:10px;border:0;background:transparent;color:#fff;cursor:pointer;display:grid;place-items:center;flex:none}
+.pm-icon-btn:hover{background:rgba(255,255,255,.14)}
+.pm-icon-btn svg{width:20px;height:20px}
+
+.pm-log{flex:1;overflow-y:auto;padding:18px 16px 8px;background:var(--mist);scroll-behavior:smooth;overscroll-behavior:contain}
+.pm-row{display:flex;gap:8px;margin-bottom:14px;animation:msgIn .32s cubic-bezier(.2,.8,.3,1) both}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.pm-row.user{justify-content:flex-end}
+.pm-row .mini{width:28px;height:28px;border-radius:9px;background:var(--brand-deep);display:grid;place-items:center;flex:none;margin-top:2px}
+.pm-row .mini svg{width:20px}
+.pm-stack{max-width:86%;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pm-row.user .pm-stack{align-items:flex-end}
+.bubble{padding:11px 14px;border-radius:16px;font-size:15.5px;line-height:1.5;overflow-wrap:anywhere}
+.bot .bubble{background:#fff;border:1px solid var(--line);border-top-left-radius:5px;color:var(--ink)}
+.user .bubble{background:var(--brand-deep);color:#fff;border-bottom-right-radius:5px}
+.bubble p{margin:0 0 8px}.bubble p:last-child{margin:0}
+.bubble ul{margin:6px 0 8px;padding-left:18px}.bubble li{margin:2px 0}
+.bubble.notice{background:var(--alert-soft);border-color:#F3C2BD}
+.bubble.notice strong{color:var(--alert)}
+.source{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:6px;padding-left:2px}
+.source a{color:var(--muted)}
+.source svg{width:13px;height:13px;flex:none}
+
+.pm-actions{display:flex;flex-wrap:wrap;gap:8px}
+.pm-actions .act{font:inherit;font-size:14.5px;font-weight:600;border-radius:999px;padding:8px 15px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:0}
+.act.primary{background:var(--brand-deep);color:#fff}
+.act.primary:hover{background:var(--brand-deeper)}
+.act.secondary{background:#fff;color:var(--brand-deep);box-shadow:inset 0 0 0 1.5px var(--brand-deep)}
+.act.secondary:hover{background:var(--brand-soft)}
+.act svg{width:14px;height:14px}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:2px 0 14px 36px;animation:msgIn .35s .05s both}
+.chip{font:inherit;font-size:14px;background:#fff;color:var(--brand-deep);border:1px solid #B8DDDF;border-radius:999px;padding:6px 12px;cursor:pointer;text-align:left;line-height:1.3;transition:background .15s,border-color .15s}
+.chip:hover{background:var(--brand-soft);border-color:var(--brand-deep)}
+
+.cards{display:grid;gap:8px;width:100%}
+.svc{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:start}
+.svc .glyph{grid-row:span 3;width:34px;height:34px;border-radius:10px;background:var(--brand-soft);color:var(--brand-deep);display:grid;place-items:center}
+.svc .glyph svg{width:18px;height:18px}
+.svc h4{margin:0;font-size:15.5px;font-weight:700;line-height:1.3}
+.svc p{margin:0;font-size:14px;color:var(--muted);line-height:1.4}
+.svc .row{display:flex;gap:12px;margin-top:4px}
+.svc .row a,.svc .row button{font:inherit;font-size:14px;font-weight:600;color:var(--brand-deep);background:none;border:0;padding:0;cursor:pointer;text-decoration:none}
+.svc .row a:hover,.svc .row button:hover{text-decoration:underline}
+
+.contact-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;font-size:14.5px;display:grid;gap:6px;width:100%}
+.contact-card div{display:flex;gap:10px;align-items:flex-start}
+.contact-card svg{width:16px;height:16px;color:var(--brand-deep);flex:none;margin-top:3px}
+
+/* lead form */
+.lead{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;width:100%;display:grid;gap:10px}
+.lead h4{margin:0;font-family:var(--display);font-size:17px;font-weight:600}
+.lead label{display:grid;gap:4px;font-size:13.5px;font-weight:600;color:var(--ink)}
+.lead label span.opt{font-weight:400;color:var(--muted)}
+.lead input,.lead textarea{font:inherit;font-size:15px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;color:var(--ink);background:#fff;width:100%}
+.lead textarea{min-height:76px;resize:vertical}
+.lead input:focus,.lead textarea:focus{outline:none;border-color:var(--brand-deep);box-shadow:0 0 0 3px var(--brand-soft)}
+.lead .err{color:var(--alert);font-size:12.5px;font-weight:500;min-height:0}
+.lead .invalid{border-color:var(--alert)}
+.lead .consent{display:flex;gap:8px;align-items:flex-start;font-weight:400;font-size:13px;color:var(--muted);grid-template-columns:none}
+.lead .consent input{width:auto;margin-top:3px;accent-color:var(--brand-deep)}
+.lead .submit{justify-self:start}
+.lead .submit[disabled]{opacity:.7;cursor:progress}
+.lead.done{opacity:.6;pointer-events:none}
+.redirect{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;display:grid;gap:10px}
+.redirect p{margin:0;font-size:14.5px}
+.redirect .bar{height:4px;border-radius:4px;background:var(--brand-soft);overflow:hidden}
+.redirect .bar i{display:block;height:100%;width:100%;background:var(--brand-deep);transform-origin:left;animation:shrink linear forwards}
+@keyframes shrink{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.redirect.stopped .bar i{animation-play-state:paused;opacity:.35}
+.redirect .pm-actions{margin:0}
+
+/* typing indicator: a heartbeat line instead of three dots */
+.typing{display:flex;gap:8px;align-items:center;margin:0 0 14px;animation:msgIn .25s both}
+.typing .beat{background:#fff;border:1px solid var(--line);border-radius:16px;border-top-left-radius:5px;padding:8px 14px;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13.5px}
+.typing svg{width:58px;height:22px}
+.typing path{fill:none;stroke:var(--brand-deep);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:90 90;animation:ecg 1.3s linear infinite}
+@keyframes ecg{from{stroke-dashoffset:180}to{stroke-dashoffset:0}}
+
+.pm-compose{border-top:1px solid var(--line);padding:10px 12px 8px;background:#fff}
+.pm-input{display:flex;align-items:flex-end;gap:8px;border:1.5px solid var(--line);border-radius:16px;padding:6px 6px 6px 14px;transition:border-color .2s,box-shadow .2s}
+.pm-input:focus-within{border-color:var(--brand-deep);box-shadow:0 0 0 3px var(--brand-soft)}
+.pm-input textarea{flex:1;border:0;outline:none;resize:none;font:inherit;font-size:15.5px;line-height:1.4;max-height:110px;padding:7px 0;color:var(--ink);background:transparent}
+.pm-send{width:40px;height:40px;border-radius:12px;border:0;background:var(--brand-deep);color:#fff;cursor:pointer;display:grid;place-items:center;flex:none;transition:background .2s,opacity .2s}
+.pm-send:disabled{opacity:.45;cursor:default}
+.pm-send svg{width:18px;height:18px}
+.pm-disclaimer{font-size:12px;color:var(--muted);text-align:center;margin:7px 4px 0;line-height:1.35}
+
+/* ---------- Responsive ---------- */
+@media (max-width:860px){
+  .site-nav ul{display:none}
+  .how-grid{grid-template-columns:1fr;gap:40px}
+  .hero-inner{padding:48px 0 120px}
+}
+@media (max-width:520px){
+  body{font-size:16px}
+  .wrap{padding:0 18px}
+  .site-nav .btn{padding:9px 16px;font-size:15px}
+  .site-nav img{height:32px}
+  .pm-panel{right:0;left:0;bottom:0;top:0;width:100%;height:100%;border-radius:0;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .pm-open .pm-launcher{opacity:0;pointer-events:none}
+  .pm-launcher{right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+  .pm-nudge{right:88px;bottom:calc(26px + env(safe-area-inset-bottom,0px))}
+  .pm-stack{max-width:90%}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .hero-pulse path{stroke-dashoffset:0}
+}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
+</head>
+<body>
+
+<!-- =====================================================================
+     DEMO WEBSITE SHELL
+     Stand-in page so the assistant can be shown in context. In production
+     the widget below is dropped into the real Proactive Medicare site as
+     a single script include.
+     ===================================================================== -->
+<div class="poc-banner">Proof of concept · <strong>AI Website Assistant</strong> for Proactive Medicare. Open the assistant in the bottom-right corner.</div>
+
+<header class="wrap site-nav">
+  <img src="data:image/png;base64,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" alt="Proactive Medicare Ltd" width="269" height="68">
+  <ul>
+    <li><a href="#" data-page="home">Home</a></li>
+    <li><a href="#" data-page="about">About us</a></li>
+    <li><a href="#" data-page="services">Services</a></li>
+    <li><a href="#" data-page="contact">Contact</a></li>
+  </ul>
+  <button class="btn btn-primary" data-open-lead>Make an enquiry</button>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-inner">
+      <h1>Care and support at home across Rayleigh, Rochford and Hockley</h1>
+      <p>Proactive Medicare is a CQC-registered home care agency helping older people and adults with additional needs live well in their own homes.</p>
+      <div class="actions">
+        <button class="btn btn-primary" data-ask="What services do you provide?">Ask the assistant</button>
+        <a class="btn btn-ghost" href="#how">How the assistant works</a>
+      </div>
+      <div class="facts">
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>CQC rated Good</span>
+        <span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></svg>Based at 118 High Street, Rayleigh</span>
+      </div>
+    </div>
+  </div>
+  <svg class="hero-pulse" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true">
+    <path d="M0 60 H520 L540 48 L556 70 L578 14 L602 82 L622 52 L640 60 H880 C900 60 905 30 930 30 C950 30 958 46 966 52 C974 46 982 30 1002 30 C1027 30 1032 60 1052 60 H1440"/>
+  </svg>
+</section>
+
+<section class="contact-sec" id="contact" tabindex="-1" aria-labelledby="contactTitle">
+  <div class="wrap">
+    <h2 id="contactTitle">Contact us</h2>
+    <p class="lede">Speak to the Proactive Medicare team about care for yourself or someone you look after.</p>
+    <div class="contact-box">
+      <div><h3>Call the office</h3><p><a href="tel:+441702840268">01702 840268</a></p></div>
+      <div><h3>Visit us</h3><p>118 High Street, Rayleigh, Essex SS6 7BY</p></div>
+      <div><h3>Getting here</h3><p>The office is close to the main bus and train routes in Rayleigh.</p></div>
+    </div>
+    <div class="actions">
+      <button class="btn btn-primary" data-open-lead>Make an enquiry</button>
+      <span class="note">Demo stand-in for the website's Contact Us page. In production the assistant takes visitors to the live page.</span>
+    </div>
+  </div>
+</section>
+
+<section class="how" id="how">
+  <div class="wrap how-grid">
+    <div>
+      <h2>How the assistant works</h2>
+      <p>The assistant only answers from Proactive Medicare's own content. In this proof of concept that content is a structured knowledge base inside the page. In production it is pulled from the website's CMS or backend, so when the website changes, the assistant's answers change with it.</p>
+      <p>If the answer isn't in that content, the assistant says so and offers to connect the visitor with the team. It never makes up services, prices or policies, and it never gives medical advice.</p>
+
+      <div class="try">
+        <h3>Try these in the assistant</h3>
+        <div class="try-list">
+          <button data-ask="Do you offer dementia care?">Do you offer dementia care?</button>
+          <button data-ask="Do you cover Hullbridge?">Do you cover Hullbridge?</button>
+          <button data-ask="How much does home care cost?">How much does care cost?</button>
+          <button data-ask="My dad needs help but I'm not sure what kind">Not sure what's needed</button>
+          <button data-ask="Can you tell me if my mum's symptoms mean she has dementia?">A diagnosis question</button>
+          <button data-ask="Is Proactive Medicare CQC registered?">Is it CQC registered?</button>
+          <button data-ask="Can your staff arrange a GP visit if my mum gets worse?">A question in your own words</button>
+          <button data-ask="Do you have a car park at your office?">Something not on the website</button>
+        </div>
+      </div>
+
+      <div class="console" aria-live="polite">
+        <div class="console-head">
+          <h3>Captured enquiries</h3>
+          <button class="link-btn" id="clearLeads">Clear</button>
+        </div>
+        <small>Stored in this browser for the demo. In production these go to the team's inbox or CRM.</small>
+        <ul id="leadList"></ul>
+        <p class="empty" id="leadEmpty">No enquiries yet. Ask the assistant how to get started and submit the form.</p>
+      </div>
+    </div>
+
+    <ol class="flow" aria-label="Production architecture">
+      <li><span class="node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8"/></svg></span>
+        <h3>Website / CMS</h3><p>Service pages, areas covered, contact details and FAQs, as edited by the Proactive Medicare team.</p></li>
+      <li><span class="node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6l-6 6 6 6M16 6l6 6-6 6"/></svg></span>
+        <h3>Content / API</h3><p>Pages are pulled from the CMS on a schedule or when they're published, then split into short passages.</p></li>
+      <li><span class="node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg></span>
+        <h3>AI knowledge layer (RAG)</h3><p>Passages are indexed in a vector store. Each question retrieves the most relevant passages.</p></li>
+      <li class="ai"><span class="node"><svg width="22" height="22" viewBox="0 0 66 32" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h8l3-6 3 12 4-22 4 24 3-8h6"/><path d="M50 28C40 21 36 16 36 11c0-4 3-7 7-7 3 0 5 2 7 5 2-3 4-5 7-5 4 0 7 3 7 7 0 5-4 10-14 17z"/></svg></span>
+        <h3>AI assistant</h3><p>A language model writes the reply using only the retrieved passages, with safety rules for medical and emergency questions.</p></li>
+      <li><span class="node"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-7 8-7s8 3 8 7"/></svg></span>
+        <h3>Website visitor</h3><p>Gets an answer, a link to the right page, or a quick way to send an enquiry to the team.</p></li>
+    </ol>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>Proactive Medicare Ltd · 118 High Street, Rayleigh, Essex SS6 7BY</span>
+    <span>POC for demonstration purposes</span>
+  </div>
+</footer>
+
+<!-- =====================================================================
+     ASSISTANT WIDGET
+     ===================================================================== -->
+<div id="pm-root">
+  <div class="pm-nudge" id="pmNudge" role="status">Looking for care at home? <button type="button" id="pmNudgeBtn">Ask me a question</button></div>
+
+  <button class="pm-launcher" id="pmLauncher" aria-label="Open Proactive Medicare Assistant" aria-expanded="false" aria-controls="pmPanel">
+    <svg class="ic-mark" viewBox="0 0 66 32" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20h8l3-6 3 12 4-22 4 24 3-8h6"/><path d="M50 28C40 21 36 16 36 11c0-4 3-7 7-7 3 0 5 2 7 5 2-3 4-5 7-5 4 0 7 3 7 7 0 5-4 10-14 17z"/></svg>
+    <svg class="ic-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+
+  <section class="pm-panel" id="pmPanel" role="dialog" aria-modal="false" aria-labelledby="pmTitle">
+    <header class="pm-head">
+      <div class="pm-avatar" aria-hidden="true">
+        <svg viewBox="0 0 66 32" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h8l3-6 3 12 4-22 4 24 3-8h6" stroke="#9FE0E2"/><path d="M50 28C40 21 36 16 36 11c0-4 3-7 7-7 3 0 5 2 7 5 2-3 4-5 7-5 4 0 7 3 7 7 0 5-4 10-14 17z"/></svg>
+      </div>
+      <div class="pm-title">
+        <h2 id="pmTitle">Proactive Medicare Assistant</h2>
+        <div class="pm-status"><i aria-hidden="true"></i>Online</div>
+        <div class="pm-sub">How can I help you today?</div>
+      </div>
+      <button class="pm-icon-btn" id="pmReset" title="Start a new conversation" aria-label="Start a new conversation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+      </button>
+      <button class="pm-icon-btn" id="pmClose" title="Close" aria-label="Close assistant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </header>
+
+    <div class="pm-log" id="pmLog" role="log" aria-live="polite" aria-relevant="additions"></div>
+
+    <form class="pm-compose" id="pmForm" autocomplete="off">
+      <label for="pmInput" class="sr-only">Type your question</label>
+      <div class="pm-input">
+        <textarea id="pmInput" rows="1" placeholder="Ask about our care services…" maxlength="600"></textarea>
+        <button class="pm-send" id="pmSend" type="submit" aria-label="Send message" disabled>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <p class="pm-disclaimer">General information only, not medical advice. In an emergency call 999.</p>
+    </form>
+  </section>
+</div>
+
+<script>
+/* =========================================================================
+   1. MOCK WEBSITE KNOWLEDGE BASE
+   -------------------------------------------------------------------------
+   PRODUCTION:
+   Replace this mock knowledge base with content retrieved from the
+   Proactive Medicare CMS/backend/API. The shape below (pages, services,
+   faqs, each with text + url) maps 1:1 to "documents" that a RAG pipeline
+   would chunk, embed and store in a vector database.
+
+   CONTENT NOTE FOR THE POC:
+   Facts below are taken from Proactive Medicare's public listings (CQC
+   register, homecare.co.uk). Page URLs on the staging site are assumed
+   slugs and are marked VERIFY. Nothing here includes prices, funding
+   rules or medical claims, because none are published.
+   ========================================================================= */
+const SITE_URL = "https://proactivemedicare.24livehost.com";
+
+const KNOWLEDGE_BASE = {
+  meta: {
+    source: "Proactive Medicare website (mock snapshot for POC)",
+    lastSynced: "2026-10-08"
+  },
+
+  organisation: {
+    name: "Proactive Medicare Ltd",
+    type: "Domiciliary (home) care agency",
+    address: "118 High Street, Rayleigh, Essex SS6 7BY",
+    phone: "01702 840268",              // VERIFY: CQC also lists 020 3693 3825
+    phoneHref: "tel:+441702840268",
+    email: null,                         // VERIFY: not available in public sources; add from website
+    officeNote: "The office is close to the main bus and train routes in Rayleigh.",
+    areas: ["Rayleigh", "Rochford", "Hockley", "Hullbridge"],
+    areaNote: "and the surrounding areas",
+    regulator: {
+      name: "Care Quality Commission (CQC)",
+      rating: "Good",
+      keyQuestions: ["Safe", "Effective", "Caring", "Responsive", "Well-led"],
+      reportDate: "5 February 2020",
+      lastReview: "6 July 2023",
+      url: "https://www.cqc.org.uk/location/1-2662719646"
+    },
+    registeredManager: "Abigail Clare Bond"
+  },
+
+  // VERIFY: confirm slugs against the live sitemap
+  pages: {
+    home:     { title: "Home",       url: SITE_URL + "/" },
+    about:    { title: "About us",   url: SITE_URL + "/about-us/" },
+    services: { title: "Services",   url: SITE_URL + "/services/" },
+    contact:  { title: "Contact us", url: SITE_URL + "/contact-us/" }
+  },
+
+  services: [
+    {
+      id: "home-care", name: "Home care and personal care", icon: "home",
+      summary: "Visits from trained carers who support you with personal care in your own home.",
+      body: "Proactive Medicare provides personal care to people living in their own houses and flats and in specialist housing. Care is planned around each person, with a person-centred care plan that is reviewed and updated regularly.",
+      forWho: "People who want to stay independent at home but need help with day-to-day personal care.",
+      keywords: ["home care","homecare","personal care","domiciliary","visit","visits","carer","carers","help at home","daily tasks","washing","dressing","stay at home","in my home","own home"],
+      slug: "home-care"
+    },
+    {
+      id: "older-people", name: "Care for older people", icon: "heart",
+      summary: "Support at home for adults over 65, the main group Proactive Medicare cares for.",
+      body: "Most of the people Proactive Medicare supports are older adults living in the community. The team helps people remain safely in their own homes and makes sure they can see the right health professionals when their needs change.",
+      forWho: "Older adults, and families looking for support for a parent or relative.",
+      keywords: ["elderly","older","old age","over 65","65","senior","pensioner","mum","dad","mother","father","parent","grandparent","nan","grandad","relative"],
+      slug: "older-people"
+    },
+    {
+      id: "live-in", name: "Live-in care", icon: "clock",
+      summary: "A carer living in the home to provide support around the clock.",
+      body: "Proactive Medicare is listed as offering live-in care for people who need more continuous support than visiting care can provide. The team can talk through whether live-in care is the right fit.",
+      forWho: "People who need support throughout the day and night, or who would otherwise consider moving into a care home.",
+      keywords: ["live in","live-in","24 hour","24/7","round the clock","overnight","night","full time","all day","constant","alternative to care home","care home"],
+      slug: "live-in-care"
+    },
+    {
+      id: "dementia", name: "Dementia care", icon: "brain",
+      summary: "Familiar, consistent support at home for people living with dementia.",
+      body: "Dementia is one of Proactive Medicare's registered specialisms. Staff get to know each person's needs and how they like their care to be given, so support stays consistent and familiar.",
+      forWho: "People living with dementia or memory loss, and the families who support them.",
+      keywords: ["dementia","alzheimer","alzheimers","memory","memory loss","forgetful","confused","confusion"],
+      slug: "dementia-care"
+    },
+    {
+      id: "end-of-life", name: "End-of-life care", icon: "leaf",
+      summary: "Compassionate support at home for people nearing the end of their life.",
+      body: "CQC inspectors found that end-of-life care arrangements were managed well, and families have sent compliments about the compassion staff showed people nearing the end of their life.",
+      forWho: "People who wish to be cared for at home towards the end of life, and their families.",
+      keywords: ["end of life","palliative","terminal","dying","last days","final stages","hospice"],
+      slug: "end-of-life-care"
+    },
+    {
+      id: "learning-disabilities", name: "Support for learning disabilities", icon: "people",
+      summary: "Person-centred support for adults with learning disabilities.",
+      body: "Learning disabilities is a registered specialism. Support is built around the person's own care plan and preferences, and reviewed as their needs change.",
+      forWho: "Adults of any age with a learning disability.",
+      keywords: ["learning disability","learning disabilities","autism","autistic","special needs","additional needs"],
+      slug: "learning-disabilities"
+    },
+    {
+      id: "mental-health", name: "Mental health support", icon: "chat",
+      summary: "Care at home for adults living with mental health conditions.",
+      body: "Mental health conditions are one of Proactive Medicare's registered specialisms. Staff help people get access to the right health professionals when their needs change.",
+      forWho: "Adults living with a mental health condition who need support at home.",
+      keywords: ["mental health","anxiety","depression","mental illness","wellbeing","bipolar","schizophrenia"],
+      slug: "mental-health"
+    },
+    {
+      id: "disabilities", name: "Physical disabilities and sensory impairments", icon: "access",
+      summary: "Support at home for adults with physical disabilities or sight and hearing loss.",
+      body: "Proactive Medicare supports adults both over and under 65 with physical disabilities and sensory impairments, such as sight or hearing loss, so they can live as independently as possible at home.",
+      forWho: "Adults of any age with a physical disability or a sensory impairment.",
+      keywords: ["physical disability","disability","disabled","wheelchair","mobility","sensory","sight","blind","visual impairment","hearing","deaf","under 65","younger adult","young adult"],
+      slug: "physical-disabilities"
+    }
+  ],
+
+  // Short factual statements published about the service (CQC register / report findings)
+  facts: [
+    { page:"about", title:"About us", text:"Proactive Medicare provides personal care to people living in their own houses and flats and in specialist housing." },
+    { page:"about", title:"About us", text:"The service supports adults over 65 and adults under 65." },
+    { page:"about", title:"About us", text:"Staff make sure people can see the right health professionals when their needs change." },
+    { page:"about", title:"About us", text:"Risks to people are identified and managed so they receive safe care and support." },
+    { page:"about", title:"About us", text:"Staff have a good knowledge of each person's care and support needs and how they wish their care to be delivered." },
+    { page:"about", title:"About us", text:"The registered manager has systems in place to monitor the quality of care provided." },
+    { page:"about", title:"About us", text:"The registered manager and nominated individual is Abigail Clare Bond." },
+    { page:"contact", title:"Contact us", text:"You can call the Proactive Medicare office on 01702 840268." },
+    { page:"contact", title:"Contact us", text:"The office address is 118 High Street, Rayleigh, Essex SS6 7BY." }
+  ],
+
+  faqs: [
+    {
+      id: "about", page: "about", title: "About Proactive Medicare",
+      keywords: ["who are you","about","about you","company","agency","what is proactive","tell me about","who runs","manager","award","team","history"],
+      answer: () => {
+        const o = KNOWLEDGE_BASE.organisation;
+        return `**${o.name}** is a home care agency based at ${o.address}. The team provides personal care and support to people in their own homes, mainly older people, across ${listAreas()}.\n\nThe care team is award-winning and known locally for going above and beyond. The registered manager is ${o.registeredManager}.`;
+      }
+    },
+    {
+      id: "cqc", page: "about", title: "CQC rating", external: true,
+      keywords: ["cqc","regulated","registered","rating","rated","inspection","inspected","quality","safe","trust","reviews","good"],
+      answer: () => {
+        const r = KNOWLEDGE_BASE.organisation.regulator;
+        return `Yes. Proactive Medicare is registered with the ${r.name} and is rated **${r.rating}** overall. It's rated ${r.rating} in all five areas the CQC looks at: ${r.keyQuestions.join(", ")}.\n\nThe inspection report was published on ${r.reportDate}. The CQC reviewed the service again on ${r.lastReview} and found no need to reassess the rating.`;
+      }
+    },
+    {
+      id: "areas", page: "about", title: "Areas covered",
+      keywords: ["area","areas","cover","covers","serve","location","locations","where do you","near me","local","essex","town","postcode","travel"],
+      answer: () => `Proactive Medicare provides care across **${listAreas()}** ${KNOWLEDGE_BASE.organisation.areaNote} in Essex.\n\nIf you tell me your town or postcode, I can check whether it's one of the areas named on the website.`
+    },
+    {
+      id: "care-plans", page: "services", title: "How care is planned",
+      keywords: ["care plan","care plans","plan","assessment","assess","tailored","personalised","bespoke","review","changes","needs change","package"],
+      answer: () => `Every person has a **person-centred care plan**, built around their needs and how they'd like their care to be given. Plans are updated regularly.\n\nIf someone's needs change, staff make sure they can see the right health professionals. Care packages are bespoke, so the team will talk through what's needed before care starts.`
+    },
+    {
+      id: "costs", page: "contact", title: "Costs and funding",
+      keywords: ["cost","costs","price","prices","pricing","how much","fee","fees","charge","charges","rate","rates","afford","funding","funded","pay","payment","council","direct payment","nhs funded","quote"],
+      answer: () => `The website doesn't publish prices or funding details, so I won't guess. Cost depends on the care that's needed, and the Proactive Medicare team can talk you through it.\n\nIf you'd like, I can pass your details to the team so they can contact you about costs.`,
+      lead: true
+    },
+    {
+      id: "office", page: "contact", title: "Office location",
+      keywords: ["office","where are you based","where are you located","address","visit you","bus","train","directions"],
+      answer: () => {
+        const o = KNOWLEDGE_BASE.organisation;
+        return `The Proactive Medicare office is at **${o.address}**. ${o.officeNote}`;
+      }
+    }
+  ]
+};
+
+/* Towns near the service area. Used ONLY to answer "do you cover X?"
+   honestly: covered towns come from the KB; anything else is "check with the team". */
+const NEARBY_TOWNS = ["southend","leigh","leigh-on-sea","westcliff","benfleet","thundersley","hadleigh","canvey","wickford","basildon","chelmsford","hawkwell","ashingdon","shoeburyness","great wakering","eastwood","rawreth","battlesbridge","runwell","south woodham","woodham ferrers","canewdon","maldon","billericay","pitsea","laindon","castle point"];
+const POSTCODE_AREAS = { "ss6":"Rayleigh", "ss4":"Rochford", "ss5":"Hockley and Hullbridge" };
+
+/* =========================================================================
+   2. RETRIEVAL
+   -------------------------------------------------------------------------
+   PRODUCTION:
+   retrieveKnowledge() becomes a call to the vector database / search index,
+   e.g. POST /api/assistant/search { query } -> top-k passages with
+   source URLs and similarity scores.
+   ========================================================================= */
+function norm(s){
+  return " " + s.toLowerCase().replace(/[’‘]/g,"'").replace(/[^a-z0-9'\/\s-]/g," ").replace(/\s+/g," ").trim() + " ";
+}
+function scoreKeywords(q, keywords){
+  let score = 0;
+  for (const kw of keywords){
+    const k = " " + kw + " ";
+    const plural = " " + kw + "s ";
+    if (q.includes(k) || q.includes(plural)) score += 1 + (kw.split(" ").length - 1) * 1.2;
+  }
+  return score;
+}
+function retrieveKnowledge(query){
+  const q = norm(query);
+  const results = [];
+  KNOWLEDGE_BASE.services.forEach(s => {
+    const sc = scoreKeywords(q, s.keywords) + scoreKeywords(q, [s.name.toLowerCase()]) * 2;
+    if (sc > 0) results.push({ kind:"service", item:s, score:sc });
+  });
+  KNOWLEDGE_BASE.faqs.forEach(f => {
+    const sc = scoreKeywords(q, f.keywords);
+    if (sc > 0) results.push({ kind:"faq", item:f, score:sc });
+  });
+  return results.sort((a,b) => b.score - a.score);
+}
+
+/* =========================================================================
+   3. RESPONSE GENERATION
+   -------------------------------------------------------------------------
+   OPENAI API / RAG INTEGRATION
+   In production, replace generateResponse() with a call to YOUR backend,
+   never to OpenAI directly from the browser (that would expose the key):
+
+     const res = await fetch("/api/assistant/chat", {
+       method: "POST",
+       headers: { "Content-Type": "application/json" },
+       body: JSON.stringify({ sessionId, messages: state.history })
+     });
+     const { reply, sources, actions } = await res.json();
+
+   The backend then:
+     1. runs the safety checks below (emergency / medical advice),
+     2. retrieves top-k passages from the vector store,
+     3. calls the LLM with a system prompt such as:
+        "Answer ONLY from the provided Proactive Medicare passages. If the
+         answer is not in them, say so and offer to connect the visitor
+         with the team. Never diagnose, never give medical advice, never
+         state prices or policies not in the passages.",
+     4. returns the reply plus source URLs and suggested CTAs.
+
+   The API key lives in the backend's environment variables only.
+   ========================================================================= */
+
+const RX = {
+  selfHarm:  /\b(suicid\w*|kill (myself|himself|herself)|end (my|his|her) life|self[- ]?harm\w*|hurt(ing)? (myself|himself|herself)|want to die)\b/,
+  emergency: /\b(emergency|chest pains?|can'?t breathe|cannot breathe|not breathing|struggling to breathe|unconscious|unresponsive|heart attack|having a stroke|had a stroke just|severe bleeding|bleeding (heavily|a lot)|overdos\w*|collapsed|seizure|fitting|choking|fallen and can'?t|has fallen|fell over|ambulance|999)\b/,
+  medical:   /\b(diagnos\w*|symptoms?|what'?s wrong with|what is wrong with|is it serious|is this serious|should i (take|stop|be worried)|should (he|she|they) (take|stop)|dose|dosage|side effects?|how much (paracetamol|ibuprofen|medicine|medication)|what medication|which medication|is it (dementia|cancer|a stroke)|does (he|she|my \w+) have|do i have)\b/,
+  greet:     /^(hi|hello|hey|hiya|good (morning|afternoon|evening)|hey there)\b[!. ]*$/,
+  thanks:    /\b(thanks|thank you|cheers|ta|brilliant|great,? thanks|that'?s helpful)\b/,
+  bye:       /^(bye|goodbye|see you|that'?s all|no thanks|nothing else)\b/,
+  booking:   /\b(book|booking|appointment|schedule a (visit|call|meeting))\b/,
+  lead:      /\b(get started|getting started|start care|arrange care|set up care|sign up|enquir\w*|inquir\w*|request (information|info|a call|callback)|speak (to|with) (someone|somebody|a person|the team|a human)|talk (to|with) (someone|somebody|a person|the team)|call me( back)?|callback|ring me|someone to (call|contact) me|need care (for|now|urgently)|interested in your)\b/,
+  recommend: /\b(which (service|one|option|care)|right for (me|my|us|him|her|them)|help (me )?choos\w*|help choosing|not sure (what|which)|don'?t know (what|which)|recommend|best (service|option)|what (kind|type) of care|what do (i|we) need|suit (me|my|us))\b/,
+  servicesList: /\b(what|which|list|all|your|types? of|kinds? of|range of)\b.*\bservices?\b|\bservices?\b.*\b(offer|provide|available|do you)\b|\bwhat (do|can) you (do|offer|provide|help with)\b|\bwhat care\b/,
+  navigate:  /\b(where (can|do|would) i (find|see|get|look)|where is|where are|take me to|show me the|which page|link to|go to the|navigate)\b/,
+  contact:   /\b(contact|phone|telephone|number|call you|ring you|email|e-mail|get in touch|reach (you|the team)|speak to you)\b/,
+  moreInfo:  /^(tell me more|more( info| information| details)?|go on|yes,? more|and\??)$/,
+  areaAsk:   /\b(cover|covers|serve|work in|operate in|available in|come to|travel to|in my area|near)\b/,
+  careers:   /\b(job|jobs|career|careers|vacanc\w*|recruit\w*|hiring|work for you|apply|carer role)\b/
+};
+
+/* =========================================================================
+   ASSISTANT CONFIG
+   ========================================================================= */
+const ASSISTANT_CONFIG = {
+  // Where the "Contact Us" redirect goes when no answer is found.
+  //  "auto"     -> scroll to #contact if it exists on this page (POC), else open the Contact page
+  //  "navigate" -> always go to the website's Contact Us page (PRODUCTION setting)
+  contactRedirect: "auto",
+  redirectSeconds: 6,
+
+  // OPENAI API / RAG INTEGRATION
+  // Set this to your own backend route to let a language model answer free-text
+  // questions. The backend must answer ONLY from Proactive Medicare content and
+  // return { found: boolean, answer: string, sources: [{title,url}] }.
+  // Leave null to use the built-in local engine below. Never put an API key here.
+  aiEndpoint: null
+};
+
+/* =========================================================================
+   FREE-TEXT UNDERSTANDING (local engine)
+   -------------------------------------------------------------------------
+   Lets visitors type anything in their own words:
+     • spelling correction against the website vocabulary ("dementa" -> "dementia")
+     • synonyms ("mum", "elderly", "carers", "price" ...)
+     • passage search over every sentence of website content
+     • detection of topics the website doesn't cover, so the assistant says
+       so honestly and sends the visitor to Contact Us
+   PRODUCTION: the vector search in the RAG layer replaces searchPassages().
+   ========================================================================= */
+const COMMON = new Set(("a an the i me my we us our you your yours is are was were be been being am do does did done doing can could would should will shall may might must to for of in on at by from and or but if then than so as it its it's this that these those what when where which who whom why how whether about around regarding with without into onto over under also any some there their them they he she him her his hers mine myself someone somebody anyone anybody people person family friend friends thing things kind type types sort way much many more most lot lots really just please thanks thank yes no not dont don't can't cant cannot won't im i'm i've ive ill i'll id i'd provide provides offer offers offering help helps helping need needs needed want wants wanted looking look get gets getting give know tell find like also currently available service services care support home work working day days time anything everything something info information question questions details detail ok okay hi hello able go going come coming have has had having make makes made take takes use using new good best better right other another one two own still already sure maybe well very too only every each both either neither here now soon next much little bit quite rather sometimes often always never ever proactive medicare ltd limited company team staff website site page arrange arranges arranged organise organize sort sorted visit visits visiting worse worsen better unwell ill poorly sick gets got become becomes start starts happen happens happened manage managing cope coping live lives living stay staying around near nearby local week weekly daily morning evening hour hours today tomorrow currently usually normally possible ask asking talk speak explain mean means include includes including whole full part").split(" "));
+
+const SYNONYMS = {
+  doctor:"health", doctors:"health", gp:"health", gps:"health", nurse:"health", nurses:"health", medical:"health", hospital:"health",
+  carer:"care", caring:"care", caregiver:"care", homecare:"care", domiciliary:"care",
+  elderly:"older", senior:"older", seniors:"older", pensioner:"older", aged:"older", old:"older",
+  mum:"parent", mom:"parent", mother:"parent", dad:"parent", father:"parent", nan:"parent", gran:"parent", grandad:"parent", grandma:"parent", grandpa:"parent", grandparent:"parent",
+  alzheimer:"dementia", alzheimers:"dementia", memory:"dementia",
+  price:"cost", fee:"cost", fees:"cost", charge:"cost", charges:"cost", rate:"cost", rates:"cost", afford:"cost", expensive:"cost",
+  telephone:"phone", number:"phone", ring:"phone", mobile:"phone",
+  located:"address", location:"address", based:"address", office:"address",
+  palliative:"end", terminal:"end", dying:"end",
+  wheelchair:"disability", disabled:"disability", disabilities:"disability", mobility:"disability",
+  deaf:"hearing", blind:"sight", vision:"sight",
+  inspection:"cqc", inspected:"cqc", regulated:"cqc", regulator:"cqc", rated:"cqc", rating:"cqc",
+  boss:"manager", owner:"manager", director:"manager", runs:"manager", run:"manager",
+  overnight:"live", "24/7":"live", night:"live", nights:"live",
+  flat:"house", flats:"house", bungalow:"house", housing:"house", houses:"house"
+};
+
+function stem(w){
+  w = w.replace(/'s$/,"");
+  if (SYNONYMS[w]) return SYNONYMS[w];
+  if (w.length > 5 && w.endsWith("ies")) w = w.slice(0,-3) + "y";
+  else if (w.length > 5 && w.endsWith("ing")) w = w.slice(0,-3);
+  else if (w.length > 4 && w.endsWith("ed")) w = w.slice(0,-2);
+  else if (w.length > 4 && w.endsWith("es") && !w.endsWith("ses")) w = w.slice(0,-2);
+  else if (w.length > 3 && w.endsWith("s") && !w.endsWith("ss")) w = w.slice(0,-1);
+  return SYNONYMS[w] || w;
+}
+function words(s){ return norm(s).trim().split(" ").filter(Boolean); }
+function tok(s){ return words(s).filter(w => !STOP.has(w) && !COMMON.has(w) && w.length > 1).map(stem); }
+
+// Damerau (OSA) edit distance for typo tolerance
+function editDist(a,b){
+  if (Math.abs(a.length-b.length) > 2) return 9;
+  const d = Array.from({length:a.length+1}, (_,i) => [i, ...Array(b.length).fill(0)]);
+  for (let j=1;j<=b.length;j++) d[0][j]=j;
+  for (let i=1;i<=a.length;i++) for (let j=1;j<=b.length;j++){
+    const c = a[i-1]===b[j-1] ? 0 : 1;
+    d[i][j] = Math.min(d[i-1][j]+1, d[i][j-1]+1, d[i-1][j-1]+c);
+    if (i>1 && j>1 && a[i-1]===b[j-2] && a[i-2]===b[j-1]) d[i][j] = Math.min(d[i][j], d[i-2][j-2]+1);
+  }
+  return d[a.length][b.length];
+}
+
+let VOCAB = null, PASSAGES = null, IDF = null;
+function plainText(md){ return md.replace(/\*\*/g,""); }
+function sentences(t){ return plainText(t).split(/\n+|(?<=[.!?])\s+(?=[A-Z])/).map(x => x.trim()).filter(x => x.length > 12); }
+
+function buildIndex(){
+  const o = KNOWLEDGE_BASE.organisation, P = [];
+  const add = (text, title, url, ref) => sentences(text).forEach(sn => P.push({ text:sn, title, url, ref, tokens:new Set(tok(sn + " " + title)) }));
+
+  KNOWLEDGE_BASE.services.forEach(sv => {
+    const t = "Services › " + sv.name, u = svcUrl(sv);
+    add(sv.summary, t, u, sv); add(sv.body, t, u, sv); add(sv.name + " is for " + sv.forWho.charAt(0).toLowerCase() + sv.forWho.slice(1), t, u, sv);
+    P[P.length-1].tokens = new Set([...P[P.length-1].tokens, ...sv.keywords.flatMap(k => tok(k))]);
+  });
+  KNOWLEDGE_BASE.faqs.forEach(f => {
+    const url = f.id === "cqc" ? o.regulator.url : KB_PAGE(f.page);
+    const title = f.id === "cqc" ? "CQC: Proactive Medicare" : KNOWLEDGE_BASE.pages[f.page].title + " › " + f.title;
+    add(f.answer(), title, url, f);
+  });
+  // Facts from the organisation record, phrased as website sentences
+  (KNOWLEDGE_BASE.facts || []).forEach(f => add(f.text, f.title, KB_PAGE(f.page), null));
+
+  // vocabulary: every token the website content knows about
+  VOCAB = new Set();
+  P.forEach(p => p.tokens.forEach(t => VOCAB.add(t)));
+  KNOWLEDGE_BASE.services.forEach(sv => sv.keywords.forEach(k => tok(k).forEach(t => VOCAB.add(t))));
+  KNOWLEDGE_BASE.faqs.forEach(f => f.keywords.forEach(k => tok(k).forEach(t => VOCAB.add(t))));
+  o.areas.concat(NEARBY_TOWNS).forEach(a => tok(a).forEach(t => VOCAB.add(t)));
+  ["contact","phone","email","book","appointment","enquiry","enquir","start","area","cover","job","career","vacancy","diagnos","symptom","emergency","cost","choose","recommend","option","plan","service"].forEach(w => VOCAB.add(w));
+
+  // inverse document frequency for scoring
+  IDF = {}; const N = P.length;
+  VOCAB.forEach(t => { const df = P.filter(p => p.tokens.has(t)).length; IDF[t] = Math.log(1 + N / (df + 1)); });
+  IDF.__unseen = Math.log(1 + N);
+  PASSAGES = P;
+}
+
+/* Fix typos in the visitor's message using the website vocabulary */
+function correctSpelling(text){
+  if (!VOCAB) buildIndex();
+  const vocabWords = [...VOCAB];
+  return text.replace(/[A-Za-z][A-Za-z'-]{3,}/g, w => {
+    const lw = w.toLowerCase();
+    if (COMMON.has(lw) || STOP.has(lw) || VOCAB.has(stem(lw)) || lw.length < 5) return w;
+    const max = lw.length >= 8 ? 2 : 1;
+    let best = null, bd = 9;
+    for (const v of vocabWords){ if (v.length < 4) continue; const d = editDist(lw, v); if (d < bd){ bd = d; best = v; } }
+    return (best && bd <= max) ? best : w;
+  });
+}
+
+/* Words in the question that the website content says nothing about */
+function unknownTerms(text){
+  if (!VOCAB) buildIndex();
+  return words(text).filter(w => w.length >= 4 && !STOP.has(w) && !COMMON.has(w) && !/^\d+$/.test(w) && !VOCAB.has(stem(w)));
+}
+
+/* Sentence-level search across all website content */
+function searchPassages(text){
+  if (!PASSAGES) buildIndex();
+  const qt = [...new Set(tok(text))];
+  if (!qt.length) return [];
+  // who the care is for ("mum", "older") is context; what they ask about is the topic
+  const LOW = new Set(["parent","older","adult","someone","relative"]);
+  const w = t => (IDF[t] ?? IDF.__unseen) * (LOW.has(t) ? 0.3 : 1);
+  const total = qt.reduce((a,t) => a + w(t), 0);
+  return PASSAGES.map(p => {
+    const hit = qt.filter(t => p.tokens.has(t));
+    return { p, score: hit.reduce((a,t) => a + w(t), 0) / total, hit };
+  }).filter(r => r.hit.length).sort((a,b) => b.score - a.score);
+}
+
+/* Conversation state (in-memory). PRODUCTION: keep history server-side by sessionId. */
+const state = { history: [], lastService: null, busy: false, leadOpen: false, sessionId: "poc-" + Date.now() };
+
+async function generateResponse(text){
+  const original = text.trim();
+  const raw = correctSpelling(original);          // typo-tolerant
+  const q = norm(raw);
+  const plain = q.trim();
+
+  // ---- 1. Safety first: these run before any retrieval ----
+  if (RX.selfHarm.test(q))  return respSelfHarm();
+  if (RX.emergency.test(q)) return respEmergency();
+  if (RX.medical.test(q))   return respMedical();
+
+  // ---- 2. Small talk ----
+  if (RX.greet.test(plain)) return { text:"Hello! I'm here to help with questions about Proactive Medicare's home care services, the areas we cover, and how to get in touch. What would you like to know?", chips: WELCOME_CHIPS.slice(0,4) };
+  if (RX.bye.test(plain))   return { text:"Thanks for stopping by. If anything else comes up, I'm here whenever you need me.", actions:[ act("Contact us","link",KB_PAGE("contact"),"secondary") ] };
+  if (RX.thanks.test(q) && plain.split(" ").length <= 5) return { text:"You're welcome. Is there anything else I can help you find?", chips:["What services do you provide?","How can I get started?"] };
+
+  // ---- 3. Follow-ups that depend on context ----
+  if (RX.moreInfo.test(plain) && state.lastService) return respServiceDetail(state.lastService, true);
+
+  // ---- 4. Intent routing ----
+  if (/\bhow (can|do) (i|we) (get started|start|begin)\b/.test(q) || /^get(ting)? started\??$/.test(plain)) return respGetStarted();
+  if (RX.booking.test(q))   return respBooking();
+  if (RX.lead.test(q))      return respLeadOffer();
+  if (RX.careers.test(q))   return respFallback("I couldn't find information about jobs or careers in the content currently available to me.", true);
+
+  const area = detectArea(q);
+  if (area) return respArea(area);
+
+  if (RX.recommend.test(q)) return respRecommend();
+  if (RX.navigate.test(q))  return respNavigate(q);
+  if (RX.servicesList.test(q) && !unknownTerms(raw).length && !retrieveKnowledge(raw).some(r => r.kind === "service" && r.score >= 1.5)) return respServicesList();
+  if (RX.contact.test(q))   return respContact();
+
+  // ---- 5a. Optional AI backend (OPENAI API / RAG INTEGRATION) ----
+  if (ASSISTANT_CONFIG.aiEndpoint){
+    try {
+      const res = await fetch(ASSISTANT_CONFIG.aiEndpoint, {
+        method:"POST", headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify({ sessionId: state.sessionId, question: original, history: state.history.slice(-10) })
+      });
+      const d = await res.json();
+      if (d && d.found) return { text:d.answer, sources:d.sources || [], actions:[ act("Contact Us","contact","","secondary") ] };
+      if (d && d.found === false) return respFallback(null, true);
+    } catch(e){ console.warn("AI backend unavailable, using local engine", e); }
+  }
+
+  // ---- 5b. Knowledge retrieval (local engine) ----
+  const hits = retrieveKnowledge(raw);
+  const unknown = unknownTerms(raw);
+  const passages = searchPassages(raw);
+  const best = passages[0];
+
+  // The question mentions something the website doesn't cover
+  if (unknown.length){
+    // only point to a related topic when it matched on the visitor's own topic words
+    const related = hits.length && hits[0].score >= 1 ? hits[0] : null;
+    return respPartial(unknown, related);
+  }
+
+  // Free-text question answered from a specific sentence on the website
+  if (!hits.length && best && best.score >= 0.5) return respPassages(passages);
+
+  // vague or very short queries: ask a clarifying question
+  const meaningful = plain.split(" ").filter(w => !STOP.has(w));
+  if (!hits.length && meaningful.length <= 2 && meaningful.every(w => GENERIC.has(w))) return respClarify();
+
+  if (hits.length){
+    const top = hits[0];
+    const svcHits = hits.filter(h => h.kind === "service");
+    // a specific sentence that answers the question beats a broad topic match
+    if (best && best.score >= 0.5 && top.score < 2 && !(best.p.ref && best.p.ref === top.item)) return respPassages(passages);
+    // two services equally likely: let the visitor choose instead of guessing
+    if (svcHits.length >= 2 && svcHits[0].score === svcHits[1].score && top.kind === "service"){
+      return {
+        text:"A couple of our services could fit what you've described. Which one would you like to know more about?",
+        cards: svcHits.slice(0,3).map(h => h.item)
+      };
+    }
+    // a precise sentence match beats a broad topic match
+    if (best && best.score >= 0.75 && top.score < 2) return respPassages(passages);
+    if (top.kind === "service") return respServiceDetail(top.item);
+    return respFaq(top.item);
+  }
+
+  // ---- 6. Smart fallback: nothing in the website content -> Contact Us ----
+  return respFallback(null, true);
+}
+
+/* ---------- Response builders ---------- */
+const STOP = new Set("a an the i me my we us our you your is are was do does can could would should will to for of in on at and or it this that what how about any please hi hello with be have has there".split(" "));
+const GENERIC = new Set(["care","help","info","information","service","services","question","support","need","needs","something","query"]);
+
+function KB_PAGE(key){ return KNOWLEDGE_BASE.pages[key].url; }
+function svcUrl(s){ return KNOWLEDGE_BASE.pages.services.url + s.slug + "/"; }  // VERIFY slug
+function listAreas(){
+  const a = KNOWLEDGE_BASE.organisation.areas;
+  return a.slice(0,-1).join(", ") + " and " + a[a.length-1];
+}
+function act(label, type, value, style){ return { label, type, value, style: style || "secondary" }; }
+function src(title, url){ return { title, url }; }
+
+const WELCOME_CHIPS = [
+  "What services do you provide?",
+  "Which service is right for me?",
+  "How can I get started?",
+  "How do I contact Proactive Medicare?",
+  "Where can I find information about your services?",
+  "Can I book an appointment?",
+  "What areas do you serve?"
+];
+
+function respEmergency(){
+  return {
+    notice:true,
+    text:"**If this is an emergency, please call 999 now** or seek immediate medical attention. For urgent medical advice that isn't an emergency, call NHS 111.\n\nI can provide general information about Proactive Medicare's services, but I can't give medical or emergency advice.",
+    actions:[ act("Call 999","link","tel:999","primary"), act("Call NHS 111","link","tel:111") ]
+  };
+}
+function respSelfHarm(){
+  return {
+    notice:true,
+    text:"I'm really sorry you're going through this. **If someone is in immediate danger, call 999.**\n\nYou can talk to Samaritans for free, any time, on **116 123**. For urgent mental health help you can also call NHS 111 and choose the mental health option.\n\nI'm an information assistant for Proactive Medicare, so I can't give this kind of support myself, but please do reach out to one of these services.",
+    actions:[ act("Call Samaritans 116 123","link","tel:116123","primary"), act("Call 999","link","tel:999") ]
+  };
+}
+function respMedical(){
+  return {
+    notice:true,
+    text:"I can provide general information about Proactive Medicare's services, but **I can't diagnose a medical condition** or give medical advice. Please speak to a GP or pharmacist, or call NHS 111 for advice.\n\nIf you're experiencing an emergency, please call 999 or seek immediate medical attention.\n\nIf you're looking for support at home for someone with a health condition, I can tell you about the care Proactive Medicare provides.",
+    chips:["What services do you provide?","Do you offer dementia care?","Which service is right for me?"]
+  };
+}
+
+function respServicesList(){
+  return {
+    text:"Proactive Medicare provides care and support in people's own homes. Here are the services on the website. Which one would you like to know more about?",
+    cards: KNOWLEDGE_BASE.services,
+    sources:[ src("Services", KB_PAGE("services")) ],
+    actions:[ act("View all services","link",KB_PAGE("services")) ]
+  };
+}
+
+function respServiceDetail(s, deeper){
+  state.lastService = s;
+  const text = deeper
+    ? `${s.body}\n\n**Who it's for:** ${s.forWho}\n\nIf you'd like to talk through whether this is right for you, I can pass your details to the team.`
+    : `**${s.name}.** ${s.summary}\n\n${s.body}\n\n**Who it's for:** ${s.forWho}`;
+  return {
+    text,
+    sources:[ src("Services › " + s.name, svcUrl(s)) ],
+    actions:[ act("View service","link",svcUrl(s),"primary"), act("Enquire about this","lead",s.name) ],
+    chips: deeper ? ["How much does it cost?","What areas do you serve?"] : ["How much does it cost?","Do you cover my area?","How can I get started?"]
+  };
+}
+
+function respFaq(f){
+  const pageUrl = f.id === "cqc" ? KNOWLEDGE_BASE.organisation.regulator.url : KB_PAGE(f.page);
+  const pageTitle = f.id === "cqc" ? "CQC profile" : KNOWLEDGE_BASE.pages[f.page].title;
+  const r = { text: f.answer(), sources:[ src(f.id === "cqc" ? "CQC: Proactive Medicare" : KNOWLEDGE_BASE.pages[f.page].title + " page", pageUrl) ] };
+  if (f.lead){
+    r.actions = [ act("Ask the team about costs","lead","Costs and funding","primary"), act("Contact us","link",KB_PAGE("contact")) ];
+  } else if (f.id === "areas"){
+    r.chips = ["Do you cover Rochford?","Do you cover Southend?","What services do you provide?"];
+  } else {
+    r.actions = [ act(f.id === "cqc" ? "Read the CQC report" : "Learn more","link",pageUrl) ];
+    r.chips = ["What services do you provide?","How can I get started?"];
+  }
+  return r;
+}
+
+function respRecommend(){
+  return {
+    text:"Absolutely. I can help you find the most relevant service. Could you tell me a little about what you're looking for? Pick the closest option, or describe it in your own words.",
+    chips:[
+      "Help at home with personal care",
+      "Care for an older parent",
+      "Support for someone with dementia",
+      "Someone with us around the clock",
+      "Care towards the end of life",
+      "Support for a disability or mental health condition"
+    ]
+  };
+}
+
+function respClarify(){
+  return {
+    text:"Happy to help. To point you in the right direction, what would you like to know?",
+    chips:["What services do you provide?","Which service is right for me?","What areas do you serve?","How do I contact Proactive Medicare?"]
+  };
+}
+
+function respNavigate(q){
+  if (/\bcontact|phone|email|address\b/.test(q)) {
+    return { text:"Certainly. I can help you find Proactive Medicare's contact information. Would you like me to take you to the Contact page?",
+      actions:[ act("Go to Contact page","link",KB_PAGE("contact"),"primary"), act("Show contact details here","ask","How do I contact Proactive Medicare?") ],
+      sources:[ src("Contact us", KB_PAGE("contact")) ] };
+  }
+  if (!/\bservices?\b/.test(q) && /\b(about us|cqc|team|rating)\b/.test(q)) {
+    return { text:"You'll find background on the team and the CQC rating in the About us section of the website.",
+      actions:[ act("Go to About us","link",KB_PAGE("about"),"primary") ], sources:[ src("About us", KB_PAGE("about")) ] };
+  }
+  return {
+    text:"I can help with that. You can explore the **Services** section of the Proactive Medicare website. Would you like me to show you the relevant service options here?",
+    actions:[ act("View services page","link",KB_PAGE("services"),"primary"), act("Show me the options","ask","What services do you provide?") ],
+    sources:[ src("Services", KB_PAGE("services")) ]
+  };
+}
+
+function respContact(){
+  const o = KNOWLEDGE_BASE.organisation;
+  return {
+    text:"I can help you get in touch with the Proactive Medicare team. Would you like to view the Contact Us page or submit an enquiry here?",
+    contact:true,
+    actions:[ act("Contact Us","link",KB_PAGE("contact"),"primary"), act("Submit Enquiry","lead","General enquiry") ],
+    sources:[ src("Contact us", KB_PAGE("contact")) ]
+  };
+}
+
+function respGetStarted(){
+  return {
+    text:"Getting started is straightforward:\n• Get in touch with the team by phone or with an enquiry here.\n• The team talks with you about the support needed.\n• A person-centred care plan is put together around those needs, and reviewed regularly once care begins.\n\nWould you like us to help you get started? I can collect a few details and pass your enquiry to the Proactive Medicare team.",
+    actions:[ act("Yes, start my enquiry","lead","Getting started","primary"), act("Contact Us","link",KB_PAGE("contact")) ],
+    sources:[ src("Services › How care is planned", KB_PAGE("services")) ]
+  };
+}
+
+function respBooking(){
+  return {
+    text:"The website doesn't list an online booking system for appointments. The first step is usually to make an enquiry, and a member of the team will get in touch to talk through what's needed and arrange next steps.\n\nWould you like us to help you get started? I can collect a few details and pass your enquiry to the Proactive Medicare team.",
+    actions:[ act("Book / Get Started","lead","Booking request","primary"), act("Call the office","link",KNOWLEDGE_BASE.organisation.phoneHref) ],
+    sources:[ src("Contact us", KB_PAGE("contact")) ]
+  };
+}
+
+function respLeadOffer(){
+  return {
+    text:"Would you like us to help you get started? I can collect a few details and pass your enquiry to the Proactive Medicare team.",
+    actions:[ act("Yes, let's do it","lead","Enquiry","primary"), act("Not right now","ask","Not right now") ]
+  };
+}
+
+function respFallback(lead, redirect){
+  return {
+    text:(lead ? lead + " " : "I couldn't find a reliable answer to that in the information currently available to me. ") + "I can help you contact the Proactive Medicare team instead.",
+    redirect: redirect ? ASSISTANT_CONFIG.redirectSeconds : 0,
+    actions: redirect ? null : [ act("Contact Proactive Medicare","contact","","primary"), act("Submit Enquiry","lead","General enquiry") ]
+  };
+}
+
+/* Answer built from the best-matching sentences of website content */
+function respPassages(list){
+  const top = list[0], picks = [top];
+  for (const r of list.slice(1)){
+    if (picks.length >= 2) break;
+    if (r.score >= top.score * 0.8 && r.p.text !== top.p.text && r.p.title === top.p.title) picks.push(r);
+  }
+  const svc = top.p.ref && top.p.ref.slug ? top.p.ref : null;
+  if (svc) state.lastService = svc;
+  return {
+    text: "Here's what the website says:\n\n" + picks.map(r => r.p.text).join(" "),
+    sources: [ src(top.p.title, top.p.url) ],
+    actions: [ act(svc ? "View service" : "Learn more","link",top.p.url,"primary"), act("Contact Us","contact","","secondary") ],
+    chips: ["How can I get started?","What services do you provide?"]
+  };
+}
+
+/* Part of the question isn't covered: say so, show the closest match, offer Contact Us */
+function respPartial(unknown, related){
+  const terms = [...new Set(unknown)].slice(0,2).map(t => "**" + t + "**").join(" or ");
+  let text = `I couldn't find anything about ${terms} in the website content, so I don't want to guess.`;
+  const r = { actions:[ act("Contact Us","contact","","primary"), act("Ask the team","lead","Question about " + unknown.slice(0,2).join(", ")) ] };
+  if (related && related.kind === "service"){
+    text += ` The closest related service is **${related.item.name}**. The Proactive Medicare team can confirm whether they can help with this.`;
+    r.cards = [ related.item ];
+  } else if (related && related.kind === "faq"){
+    text += ` You may find **${related.item.title}** useful. The Proactive Medicare team can answer this for you directly.`;
+    r.sources = [ src(related.item.title, related.item.id === "cqc" ? KNOWLEDGE_BASE.organisation.regulator.url : KB_PAGE(related.item.page)) ];
+  } else {
+    text += " The Proactive Medicare team can answer this for you directly.";
+    r.redirect = ASSISTANT_CONFIG.redirectSeconds; r.actions = null;
+  }
+  r.text = text;
+  return r;
+}
+
+/* Area checks: only confirms towns named in the KB; never assumes coverage */
+function detectArea(q){
+  const pc = q.match(/\b(ss\d{1,2})\s?\d?[a-z]{0,2}\b/);
+  if (pc) return { kind:"postcode", code:pc[1].toUpperCase(), town:POSTCODE_AREAS[pc[1]] };
+  for (const t of KNOWLEDGE_BASE.organisation.areas) if (q.includes(" " + t.toLowerCase() + " ") || q.includes(" " + t.toLowerCase() + "?")) {
+    if (RX.areaAsk.test(q) || /\b(do you|are you|in)\b/.test(q)) return { kind:"covered", town:t };
+  }
+  for (const t of NEARBY_TOWNS) if (q.includes(" " + t + " ")) return { kind:"other", town:t.replace(/\b\w/g,c=>c.toUpperCase()) };
+  if (RX.areaAsk.test(q) && /\bmy area\b|\bwhere\b/.test(q)) return { kind:"ask" };
+  return null;
+}
+function respArea(a){
+  const areas = listAreas();
+  if (a.kind === "covered" || (a.kind === "postcode" && a.town)){
+    const town = a.town;
+    return { text:`Yes, ${a.kind === "postcode" ? `${a.code} (${town})` : town} is one of the areas Proactive Medicare covers. The team provides care across ${areas} and the surrounding areas.`,
+      actions:[ act("Book / Get Started","lead","Care in " + town,"primary"), act("View services","ask","What services do you provide?") ],
+      sources:[ src("About us › Areas covered", KB_PAGE("about")) ] };
+  }
+  if (a.kind === "ask"){
+    return respFaq(KNOWLEDGE_BASE.faqs.find(f => f.id === "areas"));
+  }
+  const name = a.kind === "postcode" ? a.code : a.town;
+  return { text:`${name} isn't one of the areas named on the website. Proactive Medicare covers ${areas} and the surrounding areas, so the best way to check is to ask the team directly.`,
+    actions:[ act("Ask the team","lead","Coverage check: " + name,"primary"), act("Contact Us","link",KB_PAGE("contact")) ],
+    sources:[ src("About us › Areas covered", KB_PAGE("about")) ] };
+}
+
+/* Recommendation chips map to services without another round trip */
+const RECOMMEND_MAP = {
+  "help at home with personal care":"home-care",
+  "care for an older parent":"older-people",
+  "support for someone with dementia":"dementia",
+  "someone with us around the clock":"live-in",
+  "care towards the end of life":"end-of-life"
+};
+
+/* =========================================================================
+   4. LEAD CAPTURE
+   -------------------------------------------------------------------------
+   PRODUCTION:
+   Replace the simulated submit with a POST to the website backend or CRM,
+   e.g. POST /api/enquiries -> email to the office + CRM record.
+   Include consent wording and a privacy notice link per UK GDPR.
+   ========================================================================= */
+const LEAD_KEY = "pm_poc_enquiries";
+const leadStore = {
+  all(){ try { return JSON.parse(localStorage.getItem(LEAD_KEY)) || []; } catch(e){ return this._mem || []; } },
+  add(lead){
+    const list = this.all(); list.unshift(lead);
+    this._mem = list;
+    try { localStorage.setItem(LEAD_KEY, JSON.stringify(list)); } catch(e){}
+  },
+  clear(){ this._mem = []; try { localStorage.removeItem(LEAD_KEY); } catch(e){} }
+};
+async function submitLead(lead){
+  // PRODUCTION: return fetch("/api/enquiries", { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(lead) });
+  await wait(900);
+  leadStore.add(lead);
+  renderLeadConsole();
+  return { ok:true, reference:"PM-" + Math.random().toString(36).slice(2,7).toUpperCase() };
+}
+
+/* =========================================================================
+   5. UI / RENDERING
+   ========================================================================= */
+const $ = s => document.querySelector(s);
+const root = document.body, log = $("#pmLog"), input = $("#pmInput"), sendBtn = $("#pmSend"), panel = $("#pmPanel"), launcher = $("#pmLauncher");
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const MARK = '<svg viewBox="0 0 66 32" fill="none" stroke="#fff" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 20h8l3-6 3 12 4-22 4 24 3-8h6" stroke="#9FE0E2"/><path d="M50 28C40 21 36 16 36 11c0-4 3-7 7-7 3 0 5 2 7 5 2-3 4-5 7-5 4 0 7 3 7 7 0 5-4 10-14 17z"/></svg>';
+const ICONS = {
+  home:'<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  heart:'<path d="M12 20s-8-5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6-8 11-8 11z"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  brain:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 1V5a3 3 0 0 0-3-1zM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-6 1"/>',
+  leaf:'<path d="M5 19c0-9 6-14 15-14 0 9-5 15-14 15"/><path d="M5 19l7-7"/>',
+  people:'<circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M15 14.5c3 0 6 1.8 6 5.5"/>',
+  chat:'<path d="M4 5h16v11H9l-5 4z"/>',
+  access:'<circle cx="12" cy="4.5" r="1.8"/><path d="M5 8l7 1.5L19 8M12 9.5V14l-3 6M12 14l3 6"/>',
+  link:'<path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+  doc:'<path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/>',
+  pin:'<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  phone:'<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
+  bus:'<rect x="4" y="3" width="16" height="15" rx="2"/><path d="M4 11h16M8 21v-3M16 21v-3"/>'
+};
+const icon = (n, cls) => `<svg ${cls?`class="${cls}"`:""} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
+
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function richText(t){
+  const blocks = esc(t).split(/\n{2,}/);
+  return blocks.map(b => {
+    const lines = b.split("\n");
+    if (lines.every(l => l.startsWith("• "))) return "<ul>" + lines.map(l => "<li>" + fmt(l.slice(2)) + "</li>").join("") + "</ul>";
+    if (lines.some(l => l.startsWith("• "))){
+      const head = lines.filter(l => !l.startsWith("• ")), items = lines.filter(l => l.startsWith("• "));
+      return "<p>" + head.map(fmt).join("<br>") + "</p><ul>" + items.map(l => "<li>" + fmt(l.slice(2)) + "</li>").join("") + "</ul>";
+    }
+    return "<p>" + lines.map(fmt).join("<br>") + "</p>";
+  }).join("");
+}
+function fmt(s){ return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>"); }
+
+function scrollDown(){ requestAnimationFrame(() => { log.scrollTop = log.scrollHeight; }); }
+function clearChips(){ log.querySelectorAll(".chips").forEach(c => c.remove()); }
+
+function addUser(text){
+  const row = document.createElement("div");
+  row.className = "pm-row user";
+  row.innerHTML = `<div class="pm-stack"><div class="bubble">${esc(text)}</div></div>`;
+  log.appendChild(row); scrollDown();
+}
+
+function addBot(r){
+  const row = document.createElement("div");
+  row.className = "pm-row bot";
+  let html = `<span class="mini" aria-hidden="true">${MARK}</span><div class="pm-stack">`;
+  html += `<div class="bubble${r.notice ? " notice" : ""}">${richText(r.text)}</div>`;
+
+  if (r.contact){
+    const o = KNOWLEDGE_BASE.organisation;
+    html += `<div class="contact-card">
+      <div>${icon("phone")}<span><a href="${o.phoneHref}">${o.phone}</a></span></div>
+      <div>${icon("pin")}<span>${esc(o.address)}</span></div>
+      <div>${icon("bus")}<span>${esc(o.officeNote)}</span></div>
+    </div>`;
+  }
+  if (r.cards){
+    html += `<div class="cards">` + r.cards.map(s => `
+      <div class="svc">
+        <span class="glyph">${icon(s.icon)}</span>
+        <h4>${esc(s.name)}</h4>
+        <p>${esc(s.summary)}</p>
+        <div class="row"><button type="button" data-ask-svc="${s.id}">Tell me more</button><a href="${svcUrl(s)}" target="_blank" rel="noopener">View service</a></div>
+      </div>`).join("") + `</div>`;
+  }
+  if (r.actions && r.actions.length){
+    html += `<div class="pm-actions">` + r.actions.map(a => a.type === "link" && a.value !== KB_PAGE("contact")
+      ? `<a class="act ${a.style}" href="${a.value}" ${a.value.startsWith("tel:") ? "" : 'target="_blank" rel="noopener"'}>${esc(a.label)}${a.value.startsWith("tel:") ? "" : icon("link")}</a>`
+      : `<button type="button" class="act ${a.style}" data-act="${a.type === "link" ? "contact" : a.type}" data-val="${esc(a.value)}">${esc(a.label)}</button>`).join("") + `</div>`;
+  }
+  if (r.sources && r.sources.length){
+    html += r.sources.map(s => `<div class="source">${icon("doc")}<span>Answered from <a href="${s.url}" target="_blank" rel="noopener">${esc(s.title)}</a></span></div>`).join("");
+  }
+  if (r.redirect){
+    html += `<div class="redirect" role="status">
+      <p>Taking you to the <strong>Contact Us</strong> page in <b class="secs">${r.redirect}</b>s…</p>
+      <div class="bar"><i style="animation-duration:${r.redirect}s"></i></div>
+      <div class="pm-actions"><button type="button" class="act primary" data-act="contact">Go now</button><button type="button" class="act secondary" data-act="stay">Stay here</button><button type="button" class="act secondary" data-act="lead" data-val="General enquiry">Submit Enquiry</button></div>
+    </div>`;
+  }
+  html += `</div>`;
+  row.innerHTML = html;
+  log.appendChild(row);
+  if (r.redirect) startRedirect(row.querySelector(".redirect"), r.redirect);
+
+  if (r.chips && r.chips.length){
+    const chips = document.createElement("div");
+    chips.className = "chips";
+    chips.innerHTML = r.chips.map(c => `<button type="button" class="chip">${esc(c)}</button>`).join("");
+    log.appendChild(chips);
+  }
+  state.history.push({ role:"assistant", content:r.text });
+  // long answers: bring the start of the reply into view rather than its end
+  requestAnimationFrame(() => {
+    const top = row.offsetTop - 12;
+    log.scrollTop = (log.scrollHeight - top > log.clientHeight) ? top : log.scrollHeight;
+  });
+  return row;
+}
+
+/* Countdown that takes the visitor to Contact Us */
+let redirectTimer = null, redirectBox = null;
+function startRedirect(box, secs){
+  cancelRedirect();
+  let left = secs;
+  const out = box.querySelector(".secs");
+  redirectTimer = setInterval(() => {
+    left -= 1; out.textContent = Math.max(left, 0);
+    if (left <= 0){ cancelRedirect(false); goToContact(); }
+  }, 1000);
+  redirectBox = box;
+}
+function cancelRedirect(markStopped = true){
+  if (!redirectTimer) return;
+  clearInterval(redirectTimer);
+  const box = redirectBox; redirectBox = null;
+  if (box && markStopped){ box.classList.add("stopped"); box.querySelector("p").innerHTML = "Okay, staying here. You can open <strong>Contact Us</strong> any time."; box.querySelectorAll('[data-act="stay"]').forEach(b => b.remove()); }
+  if (box && !markStopped){ box.classList.add("stopped"); box.querySelector("p").innerHTML = "Opened the <strong>Contact Us</strong> page."; box.querySelectorAll('[data-act="stay"]').forEach(b => b.remove()); }
+  if (box) box.querySelectorAll('[data-act="contact"]').forEach(b => b.textContent = "Open Contact Us");
+  redirectTimer = null;
+}
+function goToContact(){
+  cancelRedirect(false);
+  const section = document.getElementById("contact");
+  if (ASSISTANT_CONFIG.contactRedirect === "navigate" || !section){
+    // PRODUCTION: send the visitor to the live Contact Us page
+    window.location.href = KB_PAGE("contact");
+    return;
+  }
+  if (window.matchMedia("(max-width:520px)").matches) closePanel();
+  section.scrollIntoView({ behavior:"smooth", block:"start" });
+  section.classList.remove("flash"); void section.offsetWidth; section.classList.add("flash");
+  setTimeout(() => section.classList.remove("flash"), 2600);
+  section.focus({ preventScroll:true });
+}
+
+function showTyping(){
+  const t = document.createElement("div");
+  t.className = "typing"; t.id = "pmTyping";
+  t.innerHTML = `<span class="mini" style="width:28px;height:28px;border-radius:9px;background:var(--brand-deep);display:grid;place-items:center">${MARK.replace('<svg','<svg style="width:20px"')}</span>
+    <div class="beat"><svg viewBox="0 0 58 22" aria-hidden="true"><path d="M1 13h12l3-5 4 10 5-16 5 18 3-7h24"/></svg><span>Checking our website…</span></div>`;
+  log.appendChild(t); scrollDown();
+}
+function hideTyping(){ const t = $("#pmTyping"); if (t) t.remove(); }
+
+async function handleUser(text, opts = {}){
+  text = text.trim();
+  if (!text || state.busy) return;
+  state.busy = true; sendBtn.disabled = true;
+  cancelRedirect();
+  clearChips();
+  if (!opts.silent) addUser(text);
+  state.history.push({ role:"user", content:text });
+
+  showTyping();
+  let r;
+  const key = text.toLowerCase();
+  if (opts.serviceId) r = respServiceDetail(KNOWLEDGE_BASE.services.find(s => s.id === opts.serviceId));
+  else if (RECOMMEND_MAP[key]) r = respServiceDetail(KNOWLEDGE_BASE.services.find(s => s.id === RECOMMEND_MAP[key]));
+  else if (key === "support for a disability or mental health condition") r = { text:"Proactive Medicare supports adults of all ages with a range of needs. Which of these is closest?", cards: KNOWLEDGE_BASE.services.filter(s => ["learning-disabilities","mental-health","disabilities"].includes(s.id)) };
+  else if (key === "not right now") r = { text:"No problem. I'm here if you have any other questions.", chips:["What services do you provide?","What areas do you serve?"] };
+  else r = await generateResponse(text);
+
+  await wait(Math.min(1500, 550 + r.text.length * 2.2));
+  hideTyping();
+  addBot(r);
+  state.busy = false; sendBtn.disabled = !input.value.trim();
+}
+
+/* Lead form */
+function openLeadForm(topic){
+  clearChips();
+  if (state.leadOpen){ const f = log.querySelector(".lead:not(.done)"); if (f){ f.querySelector("input").focus(); return; } }
+  state.leadOpen = true;
+  const row = addBot({ text:"Great. A few details and I'll pass your enquiry to the Proactive Medicare team." });
+  const stack = row.querySelector(".pm-stack");
+  const form = document.createElement("form");
+  form.className = "lead"; form.noValidate = true;
+  const pre = topic && !/^(enquiry|general enquiry|getting started)$/i.test(topic) ? topic + ": " : "";
+  form.innerHTML = `
+    <h4>Your enquiry</h4>
+    <label>Name<input name="name" autocomplete="name" required><span class="err" data-for="name"></span></label>
+    <label>Email<input name="email" type="email" autocomplete="email" required><span class="err" data-for="email"></span></label>
+    <label><span>Phone <span class="opt">(optional)</span></span><input name="phone" type="tel" autocomplete="tel"><span class="err" data-for="phone"></span></label>
+    <label>What can we help you with?<textarea name="message" required>${esc(pre)}</textarea><span class="err" data-for="message"></span></label>
+    <label class="consent"><input type="checkbox" name="consent" required><span>I agree to Proactive Medicare contacting me about this enquiry.</span></label>
+    <span class="err" data-for="consent"></span>
+    <button class="btn btn-primary submit" type="submit">Submit enquiry</button>`;
+  stack.appendChild(form);
+  form.addEventListener("submit", e => onLeadSubmit(e, form, topic));
+  scrollDown();
+  setTimeout(() => form.querySelector("input[name=name]").focus({ preventScroll:true }), 350);
+}
+
+async function onLeadSubmit(e, form, topic){
+  e.preventDefault();
+  const d = Object.fromEntries(new FormData(form));
+  const errs = {};
+  if (!d.name || d.name.trim().length < 2) errs.name = "Enter your name.";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(d.email || "")) errs.email = "Enter a valid email address, like name@example.com.";
+  if (d.phone && !/^[+\d][\d\s()-]{7,}$/.test(d.phone.trim())) errs.phone = "Enter a valid phone number, or leave it blank.";
+  if (!d.message || d.message.trim().length < 5) errs.message = "Tell us briefly what you need help with.";
+  if (!d.consent) errs.consent = "Tick the box so the team can contact you.";
+  form.querySelectorAll(".err").forEach(s => s.textContent = errs[s.dataset.for] || "");
+  form.querySelectorAll("input,textarea").forEach(i => i.classList.toggle("invalid", !!errs[i.name]));
+  const first = Object.keys(errs)[0];
+  if (first){ form.querySelector(`[name=${first}]`).focus(); return; }
+
+  const btn = form.querySelector(".submit");
+  btn.disabled = true; btn.textContent = "Sending…";
+  const lead = { name:d.name.trim(), email:d.email.trim(), phone:(d.phone||"").trim(), message:d.message.trim(), topic: topic || "Enquiry", createdAt:new Date().toISOString(), source:"Website assistant", sessionId: state.sessionId };
+  const res = await submitLead(lead);
+  form.classList.add("done");
+  btn.textContent = "Submitted";
+  state.leadOpen = false;
+  showTyping(); await wait(500); hideTyping();
+  addBot({ text:`Thank you, ${lead.name.split(" ")[0]}. Your enquiry has been captured. A member of the Proactive Medicare team can follow up with you.\n\nYour reference is **${res.reference}**.`,
+    chips:["What services do you provide?","What areas do you serve?"] });
+}
+
+/* Captured-enquiries console (outside the widget, for the demo) */
+function renderLeadConsole(){
+  const list = leadStore.all(), ul = $("#leadList");
+  $("#leadEmpty").style.display = list.length ? "none" : "block";
+  ul.innerHTML = list.map(l => `<li><b>${esc(l.name)}</b> · ${esc(l.email)}${l.phone ? " · " + esc(l.phone) : ""}<br>${esc(l.message)}<br><small>${new Date(l.createdAt).toLocaleString("en-GB",{dateStyle:"medium",timeStyle:"short"})} · ${esc(l.topic)}</small></li>`).join("");
+}
+
+/* Welcome */
+function welcome(){
+  log.innerHTML = "";
+  state.history = []; state.lastService = null; state.leadOpen = false;
+  addBot({
+    text:"Hi! I'm the Proactive Medicare Assistant. I can help you find information about our services, guide you through the website, and answer questions about Proactive Medicare. What can I help you with?",
+    chips: WELCOME_CHIPS
+  });
+}
+
+/* Open / close */
+let welcomed = false;
+function openPanel(){
+  root.classList.add("pm-open");
+  launcher.setAttribute("aria-expanded","true");
+  launcher.setAttribute("aria-label","Close Proactive Medicare Assistant");
+  $("#pmNudge").classList.remove("show");
+  if (!welcomed){ welcome(); welcomed = true; }
+  setTimeout(() => input.focus({ preventScroll:true }), 300);
+}
+function closePanel(){
+  root.classList.remove("pm-open");
+  launcher.setAttribute("aria-expanded","false");
+  launcher.setAttribute("aria-label","Open Proactive Medicare Assistant");
+  launcher.focus();
+}
+async function openAndAsk(q){
+  const wasOpen = root.classList.contains("pm-open");
+  openPanel();
+  await wait(wasOpen ? 0 : 380);
+  handleUser(q);
+}
+
+/* Events */
+launcher.addEventListener("click", () => root.classList.contains("pm-open") ? closePanel() : openPanel());
+$("#pmClose").addEventListener("click", closePanel);
+$("#pmReset").addEventListener("click", () => { if (state.busy) return; cancelRedirect(); log.style.opacity = 0; setTimeout(() => { welcome(); log.style.transition = "opacity .25s"; log.style.opacity = 1; }, 160); });
+$("#pmNudgeBtn").addEventListener("click", openPanel);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && root.classList.contains("pm-open")) closePanel(); });
+
+$("#pmForm").addEventListener("submit", e => { e.preventDefault(); const v = input.value; input.value = ""; autosize(); handleUser(v); });
+input.addEventListener("input", () => { sendBtn.disabled = !input.value.trim() || state.busy; autosize(); });
+input.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); $("#pmForm").requestSubmit(); } });
+function autosize(){ input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 110) + "px"; }
+
+log.addEventListener("click", e => {
+  const chip = e.target.closest(".chip");
+  if (chip) return handleUser(chip.textContent);
+  const svc = e.target.closest("[data-ask-svc]");
+  if (svc){ const s = KNOWLEDGE_BASE.services.find(x => x.id === svc.dataset.askSvc); return handleUser("Tell me about " + s.name.toLowerCase(), { serviceId:s.id }); }
+  const a = e.target.closest("[data-act]");
+  if (a){
+    if (a.dataset.act === "lead"){ cancelRedirect(); addUser(a.textContent); return openLeadForm(a.dataset.val); }
+    if (a.dataset.act === "ask") return handleUser(a.dataset.val);
+    if (a.dataset.act === "contact") return goToContact();
+    if (a.dataset.act === "stay") return cancelRedirect();
+  }
+});
+
+document.querySelectorAll("[data-ask]").forEach(b => b.addEventListener("click", () => openAndAsk(b.dataset.ask)));
+document.querySelectorAll("[data-open-lead]").forEach(b => b.addEventListener("click", async () => { openPanel(); await wait(380); openLeadForm("Enquiry"); }));
+document.querySelectorAll("[data-page]").forEach(a => a.addEventListener("click", e => { e.preventDefault(); if (a.dataset.page === "contact") return goToContact(); window.open(KB_PAGE(a.dataset.page), "_blank", "noopener"); }));
+$("#clearLeads").addEventListener("click", () => { leadStore.clear(); renderLeadConsole(); });
+
+renderLeadConsole();
+setTimeout(() => { if (!root.classList.contains("pm-open")) $("#pmNudge").classList.add("show"); }, 2500);
+</script>
+</body>
+</html>
